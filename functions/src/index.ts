@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
-import * as firestore from "firebase-admin/firestore";
+// import * as firestore from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
-import { defineString } from "firebase-functions/params";
+// import { defineString } from "firebase-functions/params";
 
 // // Start writing functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -12,7 +12,7 @@ admin.initializeApp();
 
 // const collectionName = defineString("twitch-group-users-info");
 
-const API_URL = "https://id.twitch.tv/oauth2";
+// const API_URL = "https://id.twitch.tv/oauth2";
 
 const middleWareCheckTokenValid =
   (handler: Function) =>
