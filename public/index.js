@@ -1,73 +1,98 @@
-// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-// // The Firebase SDK is initialized and available here!
-//
-// firebase.auth().onAuthStateChanged(user => { });
-// firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-// firebase.firestore().doc('/foo/bar').get().then(() => { });
-// firebase.functions().httpsCallable('yourFunction')().then(() => { });
-// firebase.messaging().requestPermission().then(() => { });
-// firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-// firebase.analytics(); // call to activate
-// firebase.analytics().logEvent('tutorial_completed');
-// firebase.performance(); // call to activate
-//
-// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+const FUNCTIONS_URL_LOCAL =
+  "http://localhost:5001/twitch-group/asia-northeast3";
+const FUNCTIONS_URL = "https://asia-northeast3-twitch-group.cloudfunctions.net";
 
-let App;
+const firebaseConfig = {
+  apiKey: "AIzaSyCELMZaU76urD3O5_PxGPt1oE17r_gMcj4",
+  authDomain: "twitch-group.firebaseapp.com",
+  databaseURL:
+    "https://twitch-group-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "twitch-group",
+  storageBucket: "twitch-group.appspot.com",
+  messagingSenderId: "320131693220",
+  appId: "1:320131693220:web:fe8e5ee791b87bfc25c431",
+  measurementId: "G-QG1QHTW0WE",
+};
 
 const checkSDK = () => {
   try {
-    App = firebase.initializeApp({
-      apiKey: "AIzaSyCELMZaU76urD3O5_PxGPt1oE17r_gMcj4",
-      authDomain: "twitch-group.firebaseapp.com",
-      projectId: "twitch-group",
-      storageBucket: "twitch-group.appspot.com",
-      messagingSenderId: "320131693220",
-      appId: "1:320131693220:web:fe8e5ee791b87bfc25c431",
-      measurementId: "G-QG1QHTW0WE",
-    });
+    firebase.initializeApp(firebaseConfig);
 
     let features = [
       "auth",
       "database",
-      // "firestore",
+      "firestore",
       "functions",
-      // "messaging",
-      // "storage",
-      // "analytics",
-      // "remoteConfig",
-      // "performance",
-    ].filter((feature) => typeof App[feature] === "function");
+      "messaging",
+      "storage",
+      "analytics",
+      "remoteConfig",
+      "performance",
+    ].filter((feature) => typeof firebase.app()[feature] === "function");
 
     console.log(`Firebase SDK loaded with ${features.join(", ")}`);
   } catch (e) {
     console.error(e);
-    loadEl.textContent = "Error loading the Firebase SDK, check the console.";
   }
 };
 
+const loginSuccess = async (result) => {
+  const credential = result.credential;
+  const userInfo = result.additionalUserInfo;
+
+  const accessToken = credential.accessToken;
+  const currentUserId = userInfo.profile.sub;
+
+  console.log(result);
+
+  await fetch(`${FUNCTIONS_URL_LOCAL}/getFollowList`, {
+    method: "GET",
+    headers: {
+      access_token: accessToken,
+      current_user_id: currentUserId,
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => console.log(data))
+    .catch((err) => console.error(err));
+
+  // await fetch(`${FUNCTIONS_URL_LOCAL}/saveToken`, {
+  //   method: 'GET',
+  //   headers: {
+  //     access_token: accessToken,
+  //   },
+  // })
+  //   .then((res) => res.json())
+  //   .then((data) => console.log(data))
+  //   .catch((err) => console.error(err));
+};
+
 function main() {
-  const authService = firebase.auth(App);
+  checkSDK();
+
+  const auth = firebase.auth();
 
   const provider = new firebase.auth.OAuthProvider("oidc.twitch");
 
-  document.querySelector("button").addEventListener("click", () => {
-    authService
-      .signInWithPopup(provider)
-      .then((result) => {
-        var credential = result.credential;
+  provider.addScope("user:read:follows");
+  provider.addScope("channel:read:subscriptions");
 
-        // OAuth access and id tokens can also be retrieved:
-        var accessToken = credential.accessToken;
-        var idToken = credential.accessToken;
-
-        console.log(result);
-      })
-      .catch((error) => {
-        // Handle error.
-        console.error(error);
-      });
+  document.querySelector("button.login").addEventListener("click", async () => {
+    auth
+      .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(() => auth.signInWithPopup(provider))
+      .then(loginSuccess)
+      .catch((err) => console.error(err));
   });
+
+  document
+    .querySelector("button.logout")
+    .addEventListener("click", async () => {
+      auth
+        .signOut()
+        .then(() => console.log("sign out!"))
+        .catch((err) => console.error(err));
+    });
 }
 
-document.addEventListener("DOMContentLoaded", main);
+window.addEventListener("DOMContentLoaded", main);
