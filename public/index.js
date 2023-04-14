@@ -2,21 +2,9 @@ const FUNCTIONS_URL_LOCAL =
   "http://localhost:5001/twitch-group/asia-northeast3";
 const FUNCTIONS_URL = "https://asia-northeast3-twitch-group.cloudfunctions.net";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCELMZaU76urD3O5_PxGPt1oE17r_gMcj4",
-  authDomain: "twitch-group.firebaseapp.com",
-  databaseURL:
-    "https://twitch-group-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "twitch-group",
-  storageBucket: "twitch-group.appspot.com",
-  messagingSenderId: "320131693220",
-  appId: "1:320131693220:web:fe8e5ee791b87bfc25c431",
-  measurementId: "G-QG1QHTW0WE",
-};
-
-const checkSDK = () => {
+const checkSDK = (config) => {
   try {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(config);
 
     let features = [
       "auth",
@@ -68,7 +56,21 @@ const loginSuccess = async (result) => {
 };
 
 function main() {
-  checkSDK();
+	const firebaseConfig = {
+		apiKey: "AIzaSyCELMZaU76urD3O5_PxGPt1oE17r_gMcj4",
+		authDomain: "twitch-group.firebaseapp.com",
+		databaseURL:
+			"https://twitch-group-default-rtdb.asia-southeast1.firebasedatabase.app",
+		projectId: "twitch-group",
+		storageBucket: "twitch-group.appspot.com",
+		messagingSenderId: "320131693220",
+		appId: "1:320131693220:web:fe8e5ee791b87bfc25c431",
+		measurementId: "G-QG1QHTW0WE",
+	};
+
+	localStorage.setItem('firebase-config', JSON.stringify(firebaseConfig));
+
+  checkSDK(firebaseConfig);
 
   const auth = firebase.auth();
 
@@ -77,16 +79,20 @@ function main() {
   provider.addScope("user:read:follows");
   provider.addScope("channel:read:subscriptions");
 
-  document.querySelector("button.login").addEventListener("click", async () => {
+	if (auth.currentUser) {
+    console.log(auth.currentUser)
+  }
+	
+  document.querySelector("button#login").addEventListener("click", async () => {
     auth
       .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-      .then(() => auth.signInWithPopup(provider))
-      .then(loginSuccess)
+      .then(() => auth.signInWithRedirect(provider))
+      .then((result) => console.log('login success!', result))
       .catch((err) => console.error(err));
   });
 
   document
-    .querySelector("button.logout")
+    .querySelector("button#logout")
     .addEventListener("click", async () => {
       auth
         .signOut()
