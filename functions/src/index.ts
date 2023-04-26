@@ -15,7 +15,8 @@ const middlewareSetCORS =
   (handler: Function) =>
   async (req: Functions.https.Request, res: Functions.Response<any>) => {
     const allowedOrigins = [
-      "http://localhost:5000",
+      // "http://localhost:5000",
+      // "http://localhost:5002",
       "https://twitch-group.firebaseapp.com",
       "chrome-extension://eopaojfffcnicocfoblahhgdahcemiak",
     ];

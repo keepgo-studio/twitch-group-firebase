@@ -1,5 +1,3 @@
-const FUNCTIONS_URL_LOCAL =
-  "http://localhost:5001/twitch-group/asia-northeast3";
 const FUNCTIONS_URL = "https://asia-northeast3-twitch-group.cloudfunctions.net";
 
 const checkSDK = (config) => {
@@ -25,29 +23,21 @@ const checkSDK = (config) => {
 };
 
 const loginSuccess = async (result) => {
-  const credential = result.credential;
-  const userInfo = result.additionalUserInfo;
+  // const credential = result.credential;
+  // console.log(result);
+  // if (!credential) throw new Error("[fbase]: Should sign in");
 
-  const accessToken = credential.accessToken;
-  const currentUserId = userInfo.profile.sub;
+  // const userInfo = result.additionalUserInfo;
 
-  console.log(result);
+  // const accessToken = credential.accessToken;
+  // const currentUserId = userInfo.profile.sub;
+  // const uid = result.user.uid;
 
-  await fetch(`${FUNCTIONS_URL_LOCAL}/getFollowList`, {
-    method: "GET",
-    headers: {
-      access_token: accessToken,
-      current_user_id: currentUserId,
-    },
-  })
-    .then((res) => res.json())
-    .then((data) => console.log(data))
-    .catch((err) => console.error(err));
-
-  // await fetch(`${FUNCTIONS_URL_LOCAL}/saveToken`, {
-  //   method: 'GET',
+  // await fetch(`${FUNCTIONS_URL}/getFollowList`, {
+  //   method: "GET",
   //   headers: {
   //     access_token: accessToken,
+  //     current_user_id: currentUserId,
   //   },
   // })
   //   .then((res) => res.json())
@@ -55,7 +45,7 @@ const loginSuccess = async (result) => {
   //   .catch((err) => console.error(err));
 };
 
-function main() {
+async function main() {
 	const firebaseConfig = {
 		apiKey: "AIzaSyCELMZaU76urD3O5_PxGPt1oE17r_gMcj4",
 		authDomain: "twitch-group.firebaseapp.com",
@@ -68,8 +58,6 @@ function main() {
 		measurementId: "G-QG1QHTW0WE",
 	};
 
-	localStorage.setItem('firebase-config', JSON.stringify(firebaseConfig));
-
   checkSDK(firebaseConfig);
 
   const auth = firebase.auth();
@@ -78,11 +66,38 @@ function main() {
 
   provider.addScope("user:read:follows");
   provider.addScope("channel:read:subscriptions");
-
-	if (auth.currentUser) {
-    console.log(auth.currentUser)
-  }
 	
+  console.log(auth.currentUser);
+
+  // TODO: loading svg
+  auth.onAuthStateChanged(user => {
+    // TODO: svg will disable 
+    
+    if (user) {
+
+      const uid = user.uid,
+      currentUserId = user.providerData[0].uid,
+      accessToken = user.auth.currentUser.accessToken;
+
+      localStorage.setItem("twitch-fbase-user", JSON.stringify({
+        uid,
+        current_user_id: currentUserId,
+        access_token: accessToken
+      }));
+      window.dispatchEvent(new Event("storage"));
+    }
+    else {
+      // TODO: tell user to sign in
+    }
+
+    // test code ---------------------
+    const t = document.createElement('div');
+    t.textContent = 'done';
+    document.body.append(t);
+    // ----------------------
+  });
+
+
   document.querySelector("button#login").addEventListener("click", async () => {
     auth
       .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
@@ -91,14 +106,14 @@ function main() {
       .catch((err) => console.error(err));
   });
 
-  document
-    .querySelector("button#logout")
-    .addEventListener("click", async () => {
-      auth
-        .signOut()
-        .then(() => console.log("sign out!"))
-        .catch((err) => console.error(err));
-    });
+  // document
+  //   .querySelector("button#logout")
+  //   .addEventListener("click", async () => {
+  //     auth
+  //       .signOut()
+  //       .then(() => console.log("sign out!"))
+  //       .catch((err) => console.error(err));
+  //   });
 }
 
-window.addEventListener("DOMContentLoaded", main);
+window.addEventListener("DOMContentLoaded", async() => await main());
