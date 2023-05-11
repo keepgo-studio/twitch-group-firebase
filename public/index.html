@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Welcome to Firebase Hosting</title>
+
+    <!-- get firebase sdk -->
     <script defer src="/__/firebase/9.19.1/firebase-app-compat.js"></script>
     <script defer src="/__/firebase/9.19.1/firebase-auth-compat.js"></script>
     <script
@@ -12,12 +14,223 @@
     ></script>
     <script defer src="/__/firebase/init.js?useEmulator=true"></script>
 
-    <link href="./index.css" />
-  </head>
-  <body>
-    <button id="login">Twitch</button>
-    <button id="logout">Sign out</button>
+    <!-- Copyright (c) 2023 by prasanth kumar lalapeta (https://codepen.io/prasanthlalapeta-the-styleful/pen/qKXOzb)
     
-    <script type="module" src="./index.js"></script>
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
+    <style>
+      .loading-spinner {
+        position: relative;
+        width: 10vw;
+        max-width: 80px;
+      }
+      .loading-spinner:before {
+        content: "";
+        display: block;
+        padding-top: 100%;
+      }
+      .loading-spinner__circle-svg {
+        animation: loading-spinner-rotate 1.28973s linear infinite;
+        height: 100%;
+        transform-origin: center center;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+      }
+      .loading-spinner__circle-stroke {
+        stroke-dasharray: 1, 200;
+        stroke-dashoffset: 0;
+        animation: loading-spinner-dash 2s ease-in-out infinite,
+          loading-spinner-color 8s ease-in-out infinite;
+        stroke-linecap: round;
+        stroke-width: 4px;
+      }
+      @keyframes loading-spinner-rotate {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes loading-spinner-dash {
+        0% {
+          stroke-dasharray: 1, 200;
+          stroke-dashoffset: 0;
+        }
+        50% {
+          stroke-dasharray: 89, 200;
+          stroke-dashoffset: -35px;
+        }
+        100% {
+          stroke-dasharray: 89, 200;
+          stroke-dashoffset: -124px;
+        }
+      }
+      @keyframes loading-spinner-color {
+        100%,
+        0% {
+          stroke: #7d0fe6;
+        }
+        40% {
+          stroke: #28dcd7;
+        }
+        66% {
+          stroke: #ff6100;
+        }
+        80%,
+        90% {
+          stroke: #7d0fe6;
+        }
+      }
+    </style>
+
+    <!-- google fonts: Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/fonts.css" />
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body
+    style="
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    "
+  >
+    <nav style="display: none;">
+      <span>
+        <?xml version="1.0" encoding="utf-8"?>
+        <!-- Generator: Adobe Illustrator 23.0.6, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+        <svg
+          version="1.1"
+          id="Layer_1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          x="0px"
+          y="0px"
+          viewBox="0 0 8192 2500"
+          style="enable-background: new 0 0 8192 2500"
+          xml:space="preserve"
+        >
+          <title>Asset 9</title>
+          <g>
+            <g id="Layer_1-2">
+              <polygon
+                points="596,840 595.8,319.1 0,319.1 0,1883 297.9,2180.9 1117,2181 1117,1585 596,1585 596,1436 1117,1436 1117,840 		
+              "
+              />
+              <polygon
+                points="2755,840 2755,1585 2606,1585 2606,840 2011,840 2011,1585 1862,1585 1862,840 1266,840 1266,1883 1563.9,2180.9 
+              3351,2181 3351,840 		"
+              />
+              <polygon points="3500,840 4096,840 4096,2180.9 3500.2,2180.9 		" />
+              <polygon points="3500.2,319.1 4096,319.1 4096,692 3500,692 		" />
+              <polygon
+                points="5809,840 5511,1138.3 5511,1883 5808.9,2180.9 6703,2181 6703,1585 6107,1585 6107,1436 6703,1436 6703,840 		"
+              />
+              <polygon
+                points="7894,840 7448,840 7448,319 6852,319 6852,2181 7447,2181 7447,1436 7596,1436 7596,2181 8192,2180.9 
+              8192,1138.3 		"
+              />
+              <polygon
+                points="4841,840 4840.7,319.1 4245,319 4245,1883 4542.8,2180.9 5362,2180.9 5362,1585.1 4841,1585 4841,1436 5362,1436 
+              5362,840"
+              />
+            </g>
+          </g>
+        </svg>
+      </span>
+      <span>Player</span>
+    </nav>
+
+    <main id="root" style="display: none;">
+
+      <section class="logo-container">
+        <img src="assets/logo_round.png" alt="twitch logo">
+        
+        <img src="assets/player_logo.png" alt="twitch player logo">
+      </section>
+      <section class="player-container"></section>
+    </main>
+
+    <section
+      style="
+        flex-grow: 1;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+      id="loading"
+    >
+      <div class="loading-spinner">
+        <svg class="loading-spinner__circle-svg" viewBox="25 25 50 50">
+          <circle
+            class="loading-spinner__circle-stroke"
+            cx="50"
+            cy="50"
+            r="20"
+            fill="none"
+            stroke-width="2"
+            stroke-miterlimit="10"
+          />
+        </svg>
+      </div>
+    </section>
+
+    <section
+      style="
+        background-color: #fff;
+        display: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 999;
+      "
+      id="error-400"
+    >
+      <div
+        style="
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <h1 style="font-size: 50px; font-weight: 100; font-family: Roboto">
+          <span style="color: #ff6100;">400</span>: Bad Request
+        </h1>
+        <div style="width: 50%; background-color: black; height: 1px; margin: 32px 0;"></div>
+        <h2 style="font-size: 22px; color: var(--my-gray)">Uncorrect Redirection 😢</h2>
+      </div>
+    </section>
+
+    <div class="body_background" style="top:0;left:0;position: fixed; width: 100%; height: 100%; background-color: #f9fafc; z-index: -1;" ></div>
+
+    <footer style="display: none">
+      <ul>
+        <li><a>Twitch.tv</a></li>
+        <li><a>Email</a></li>
+        <li><a>Github Repo</a></li>
+      </ul>
+
+      <p>© 2023 Keepgo-studio</p>
+    </footer>
+    <script type="module" src="js/main.js"></script>
   </body>
 </html>

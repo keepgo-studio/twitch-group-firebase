@@ -22,6 +22,18 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
+        "source": "assets/**",
+        "destination": "/assets"
+      },
+      {
+        "source": "/js/**",
+        "destination": "/js/*.js"
+      },
+      {
+        "source": "/css/**",
+        "destination": "/css/*.css"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

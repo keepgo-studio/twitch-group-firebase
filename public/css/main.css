@@ -1,0 +1,97 @@
+:root {
+    --max-width: 540px;
+    --my-gray: #7E8183;
+    --my-smoke: #4E555D;
+    --my-gray2: #8A8C8E;
+
+    /* twitch offical color codes */
+    --twitch-purple: #9146FF;
+    --ice: #F0F0FF;
+}
+
+.body_background {
+    transition: ease 600ms;
+}
+
+nav {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    width: 100%;
+    background-color: var(--twitch-purple);
+    font-family: "Twitchy";
+    color: #fff;
+}
+nav svg {
+    height: 20px;
+    fill: #fff;
+    margin-right: 7px;
+}
+nav span:nth-child(2) {
+    position: relative;
+    top: -7px;
+}
+
+footer {
+    font-family: 'Roboto', sans-serif;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    width: var(--max-width);
+    border-top: var(--my-gray2) solid 1px;
+    height: 60px;
+    color: var(--my-gray);
+}
+
+footer ul {
+    display: flex;
+}
+footer li {
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    transition: ease 300ms;
+}
+footer li a:hover {
+    color: var(--my-smoke);
+    font-weight: bold;
+}
+footer ul li:not(:last-child)::after {
+    content: "";
+    display: inline-block;
+    background-color: var(--my-gray);
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    margin: 0 6px;
+}
+footer p {
+    font-size: 13px;
+}
+
+main {
+    width: var(--max-width);
+    height: 100%;
+    max-height: 1200px;
+}
+main .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    height: 100%;
+    max-height: 40%;
+}
+main .logo-container img {
+    width: fit-content;
+    transition: ease 300ms;
+}
+main .logo-container img:hover {
+    transform: scale(1.03);
+}
+main .player-container {
+    min-height: 50%;
+    padding: 30px 12px;
+}
