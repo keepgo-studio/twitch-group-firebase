@@ -1,6 +1,6 @@
 import { descriptions } from "./vars.js";
 
-export class PlayerSign extends HTMLElement {
+class PlayerSign extends HTMLElement {
     css = `
         * {
             padding: 0;
@@ -125,11 +125,11 @@ export class PlayerSign extends HTMLElement {
 
         this.addEventListener("checked", (ev) => {
             if (ev.detail.valid) {
-                // const close = document.createElement("auto-close");
+                const close = document.createElement("auto-close");
 
-                // document.querySelector("#root .player-container").appendChild(close);
-
-                // this.remove();
+                document.querySelector("#root .player-container").appendChild(close);
+                
+                this.remove();
                 return;
             }
 
@@ -209,3 +209,29 @@ export class PlayerSign extends HTMLElement {
         this.render();
     }
 }
+customElements.define("player-sign", PlayerSign);
+
+class AutoClose extends HTMLElement {
+    lang = document.documentElement.lang;
+
+    constructor() {
+        super();
+        if (!(this.lang === "ko" || this.lang === "en")) this.lang = "en";
+    }
+    render() {
+        console.log(this.lang, descriptions[this.lang])
+        this.innerHTML = `
+            <div style="text-align: center; font-family: 'Roboto', 'sans-serif';">
+                <h1 style="font-size: 36px">Authorization Complete!</h1>
+                <br/>
+                <h3 style="font-size: 24px">${descriptions[this.lang].close} :)<span></span></h3>
+            </div>
+        `
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+}
+
+customElements.define("auto-close", AutoClose);

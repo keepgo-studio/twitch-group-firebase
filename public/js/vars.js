@@ -10,7 +10,9 @@ export const descriptions = {
             "channel:read:subscriptions": "View a list of all subscribers to a channel and check if a user is subscribed to a channel.",
         },
 
-        "btn": "Update Twitch Account"
+        "btn": "Update Twitch Account",
+
+        "close": "You can close this tab"
     },
 
     "ko": {
@@ -19,6 +21,8 @@ export const descriptions = {
             "channel:read:subscriptions": "채널 구독자를 조회하거나 유저가 특정 채널에 구독하였는지를 조회할 권한",
         },
         
-        "btn": "계정 업데이트"
+        "btn": "계정 업데이트",
+
+        "close": "현재 창을 닫으셔도 됩니다."
     }
 }

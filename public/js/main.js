@@ -1,5 +1,5 @@
-import { PlayerSign } from "./components.js";
 import { env } from "./vars.js";
+import "./components.js";
 
 
 const firebaseConfig = {
@@ -148,11 +148,15 @@ async function main() {
     firebase.initializeApp(firebaseConfig);
     
     // active app
-    customElements.define("player-sign", PlayerSign);
     const player = document.createElement("player-sign");
     document.querySelector("#root .player-container").appendChild(player);
 
     asyncTrackUser(electron_port);
+
 }
 
 window.addEventListener("DOMContentLoaded", main);
+
+window.addEventListener("beforeunload", (e) => {
+    e.preventDefault()
+    alert("beep")})
