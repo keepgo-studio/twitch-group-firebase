@@ -125,7 +125,6 @@ export class PlayerSign extends HTMLElement {
 
         this.addEventListener("checked", (ev) => {
             if (ev.detail.valid) {
-                console.log("you don't need to login!");
                 // const close = document.createElement("auto-close");
 
                 // document.querySelector("#root .player-container").appendChild(close);
@@ -164,7 +163,7 @@ export class PlayerSign extends HTMLElement {
                 </section>
 
                 <section class="button-container">
-                    <button id="signin"><span>${this.isChecking? "Checking" : "Update Account"}</span></button>
+                    <button id="signin"><span>${this.isChecking? "Updating" : "Authorization"}</span></button>
                 </section>
             </main>
         `;
@@ -198,9 +197,10 @@ export class PlayerSign extends HTMLElement {
 
             this.tid = setInterval(() => {
                 this.sec++;
+                const target = this.shadowRoot.querySelector("button#signin span");
 
-                this.shadowRoot.querySelector("button#signin span").textContent = 
-                    `Checking${".".repeat(this.sec % 4)}`;
+                const text = target.textContent.replace(/\./g, "");
+                target.innerText = `${text}${".".repeat(this.sec % 4)}`;
             }, 1000);
         }
     }

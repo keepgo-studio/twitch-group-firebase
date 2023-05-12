@@ -34,104 +34,75 @@ async function checkTokenValid(accessToken) {
     return await fetch(`${env.TWITCH_OAUTH_URL}/validate`, {
             method: 'GET',
             headers: {
-                "Authorization": `OAuth ${"b6715e2ff71d22249895002366830477286784e3"}`
+                "Authorization": `OAuth ${accessToken}`
             }
         })
         .then((res) => (res.status === 200) ? true : false)
         .catch(() => false);
 }
 
+function resolveLoading() {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("root").style.display = "block";
+    document.querySelector(".body_background").style.backgroundColor = "var(--ice)";
+}
+
 async function asyncTrackUser(electron_port) {
     const player = document.querySelector("player-sign");
 
-    const r = await firebase.auth().getRedirectResult()
-    .then((result) => {
-        // IdP data available in result.additionalUserInfo.profile.
-        // ...
+    const result = await firebase.auth().getRedirectResult()
+        .then((r) => r)
+        .catch((error) => undefined);
 
-        /** @type {firebase.auth.OAuthCredential} */
-        var credential = result.credential;
+    resolveLoading();
 
-        // OAuth access and id tokens can also be retrieved:
-        var accessToken = credential.accessToken;
-        var idToken = credential.idToken;
-
-        console.log("redirect", result);
-
-        return result;
-    })
-    .catch((error) => {
-        // Handle error.
-    });
-
-    console.log("await", r);
-
-    firebase.auth().onAuthStateChanged(async (user) => {
-        // remove loading
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("root").style.display = "block";
-        document.querySelector(".body_background").style.backgroundColor = "var(--ice)";
-
-        if (user) {
-            const uid = user.uid,
-            currentUserId = user.providerData[0].uid,
-            accessToken = user.auth.currentUser.accessToken;
-            
-            const result = await checkTokenValid(accessToken);
-            
-            console.log(user, accessToken);
-            console.log(firebase.auth(), firebase.auth)
-
-            user.getIdTokenResult().then(function(idTokenResult) {
-                // You can access the user's ID token via idTokenResult.token
-                // You can also check other properties of the token via idTokenResult.claims
-                console.log(idTokenResult.token)
-              }).catch(function(error) {
-                // Handle error
-              });
-
-            if (!result) {
-                // await firebase.auth()
-                //     .signOut()
-                //     .then(() => location.reload())
-                //     .catch((err) => reloadPage("sign out error", "please reload window manually"));
-            } else {
-                // sync user profile with electron
-                await fetch(`http://localhost:${electron_port}/update`, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        uid,
-                        current_user_id: currentUserId,
-                        access_token: accessToken,
-                    }),
-                })
-                // if success, close tab
-                .then(() => player.dispatchEvent(new CustomEvent("checked", {
-                    detail: {
-                        valid: true
-                    }
-                })))
-                // if failed, tell user try again after reload
-                .catch(
-                    (err) => (document.getElementById("reload").style.display = "block")
-                );
+    if (!result || !result.credential) {
+        player.dispatchEvent(new CustomEvent("checked", {
+            detail: {
+                valid: false
             }
-        } 
-        else {
-            player.dispatchEvent(new CustomEvent("checked", {
-                detail: {
-                    valid: false
-                }
-            }));
+        }));
+    }
+    else {
+        const credential = result.credential;
+        const profile = result.additionalUserInfo.profile;
+
+        const accessToken = credential.accessToken;
+        const twitchId = profile.sub;
+        const twitchUsername = profile.preferred_username;
+
+        const isValid = await checkTokenValid(accessToken);
+
+        if (!isValid) {
+            await firebase.auth()
+                .signOut()
+                .then(() => reloadPage("", "plz retry authorization, there some error with getting token"))
+                .catch(() => reloadPage("error while sign out", "some error while sign out, close all window and retry"))
+            return;
         }
-    });
+
+        await fetch(`http://localhost:${electron_port}/update`, {
+                method: "POST",
+                body: JSON.stringify({
+                    username: twitchUsername,
+                    current_user_id: twitchId,
+                    access_token: accessToken,
+                }),
+            })
+            // if success, close tab
+            .then(() => player.dispatchEvent(new CustomEvent("checked", {
+                detail: {
+                    valid: true
+                }
+            })))// if failed, tell user try again after reload
+            .catch(
+                (err) => (reloadPage("error while updating user", "you should use this site with twich player program"))
+            );
+    }
 }
 
 function reloadPage(err, msg) {
-    alert(`
-        [Error]: ${err}
-        ${msg}
-    `);
+    alert(`${err !== ""? `[Error]:${err}` : ""}\n${msg}`);
 
     location.reload();
 }
@@ -149,11 +120,22 @@ function getPort() {
     return port;
 }
 
-function main() {
+async function checkPlayerOpened(port) {
+    return await fetch(`http://localhost:${port}/public/check.json`)
+        .then((res) => res.json())
+        .then((data) => true)
+        .catch(() => false);
+}
+
+async function main() {
     const electron_port = getPort();
 
     if (!electron_port) {
         error400("Cannot find port");
+    }
+
+    if (!(await checkPlayerOpened(electron_port))) {
+        error400("Player app should be open");
     }
 
     try {
