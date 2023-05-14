@@ -219,7 +219,6 @@ class AutoClose extends HTMLElement {
         if (!(this.lang === "ko" || this.lang === "en")) this.lang = "en";
     }
     render() {
-        console.log(this.lang, descriptions[this.lang])
         this.innerHTML = `
             <div style="text-align: center; font-family: 'Roboto', 'sans-serif';">
                 <h1 style="font-size: 36px">Authorization Complete!</h1>
