@@ -127,6 +127,22 @@ async function checkPlayerOpened(port) {
         .catch(() => false);
 }
 
+let iid;
+function beepConnection(port) {
+    const url = new URL(location.href);
+    const pingTime = url.searchParams.get("ping");
+
+    iid = setInterval(() => {
+        console.log("send connection");
+
+        fetch(`http://localhost:${port}/conncetion`, {
+            cache: "no-store"
+        })
+        .then(() => true)
+        .catch(() => clearInterval(iid));
+    }, pingTime);
+}
+
 async function main() {
     const electron_port = getPort();
 
@@ -153,10 +169,7 @@ async function main() {
 
     asyncTrackUser(electron_port);
 
+    beepConnection(electron_port);
 }
 
 window.addEventListener("DOMContentLoaded", main);
-
-window.addEventListener("beforeunload", (e) => {
-    e.preventDefault()
-    alert("beep")})
