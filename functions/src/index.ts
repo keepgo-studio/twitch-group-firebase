@@ -15,13 +15,10 @@ const middlewareSetCORS =
   (handler: Function) =>
   async (req: Functions.https.Request, res: Functions.Response<any>) => {
     const allowedOrigins = [
-      "http://localhost:5000",
-      "http://localhost:5002",
+      "http://localhost:8888",
+      "http://localhost:8889",
       "https://twitch-group.firebaseapp.com",
-      "chrome-extension://eopaojfffcnicocfoblahhgdahcemiak",
     ];
-
-    console.log(req.headers.origin);
 
     if (!req.headers.origin) {
       res.status(400).send("Cannot recognize origin");
@@ -37,31 +34,6 @@ const middlewareSetCORS =
     return handler(req, res);
   };
 
-// const requestRefreshToken = async (access_token: string) => {
-//   const params: Record<string, string> = {
-//     client_id: process.env.TWITCH_CLIENT_ID,
-//     client_secret: process.env.TWITCH_CLIENT_SECRET,
-//     grant_type: "refresh_token",
-//     // TODO refresh_token: ,
-//   };
-
-//   const encodedParams = Object.keys(params)
-//     .map(
-//       (key) => encodeURIComponent(key) + "=" + encodeURIComponent(params[key])
-//     )
-//     .join("&");
-//   console.log(encodedParams);
-
-//   // return await axios.post(
-//   //   `${OAUTH_URL}/token`,
-//   //   encodedParams,
-//   //   {
-//   //     headers: {
-//   //       "Content-Type": "application/x-www-form-urlencoded",
-//   //     },
-//   //   }
-//   // );
-// };
 /**
  * Check valid only when method is GET
  */
@@ -117,7 +89,7 @@ export const getFollowList = Functions.region(
             }
 
             const followListResponse = await axios
-              .get(`${API_URL}/streams/followed`, {
+              .get(`${API_URL}/channels/followed`, {
                 headers: {
                   Authorization: `Bearer ${access_token}`,
                   "Client-Id": process.env.TWITCH_CLIENT_ID,
@@ -151,3 +123,85 @@ export const getFollowList = Functions.region(
     )
   )
 );
+
+
+export const getStreamsList = Functions.region(
+  "asia-northeast3"
+).https.onRequest(
+  middlewareSetCORS(
+    middlewareCheckTokenValid(
+      async (req: Functions.https.Request, res: Functions.Response<any>) => {
+        const streamsList: Array<any> = [];
+
+        switch (req.method) {
+          case "GET":
+            const { current_user_id, access_token } = req.headers;
+
+            if (!current_user_id) {
+              res
+                .status(422)
+                .send(`attribute \'access_token\' should contain at body`);
+              return;
+            }
+
+            const streamsListResponse = await axios
+              .get(`${API_URL}/streams/followed`, {
+                headers: {
+                  Authorization: `Bearer ${access_token}`,
+                  "Client-Id": process.env.TWITCH_CLIENT_ID,
+                },
+                params: {
+                  user_id: current_user_id,
+                },
+              })
+              .then((result) => result.data)
+              .catch((err) => console.error(err));
+            
+              streamsList.push(...streamsListResponse.data);
+
+          case "OPTIONS":
+            res
+              .header({
+                "Access-Control-Allow-Headers": [
+                  "access_token",
+                  "current_user_id",
+                ],
+              })
+              .status(200)
+              .send({
+                stream_list: streamsList,
+              });
+            break;
+          default:
+            res.status(415).send("only GET method supported for this url");
+        }
+      }
+    )
+  )
+)
+
+// const requestRefreshToken = async (access_token: string) => {
+//   const params: Record<string, string> = {
+//     client_id: process.env.TWITCH_CLIENT_ID,
+//     client_secret: process.env.TWITCH_CLIENT_SECRET,
+//     grant_type: "refresh_token",
+//     // TODO refresh_token: ,
+//   };
+
+//   const encodedParams = Object.keys(params)
+//     .map(
+//       (key) => encodeURIComponent(key) + "=" + encodeURIComponent(params[key])
+//     )
+//     .join("&");
+//   console.log(encodedParams);
+
+//   // return await axios.post(
+//   //   `${OAUTH_URL}/token`,
+//   //   encodedParams,
+//   //   {
+//   //     headers: {
+//   //       "Content-Type": "application/x-www-form-urlencoded",
+//   //     },
+//   //   }
+//   // );
+// };

@@ -169,7 +169,7 @@ async function main() {
 
     asyncTrackUser(electron_port);
 
-    beepConnection(electron_port);
+    // beepConnection(electron_port);
 }
 
 window.addEventListener("DOMContentLoaded", main);
