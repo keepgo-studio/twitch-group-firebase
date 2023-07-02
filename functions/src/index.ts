@@ -2,6 +2,7 @@ import axios from "axios";
 import * as Admin from "firebase-admin";
 // import * as Auth from "firebase-admin/auth";
 import * as Functions from "firebase-functions";
+import * as url from "url";
 
 // // Start writing functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -47,7 +48,7 @@ const middlewareCheckTokenValid =
         if (!access_token) {
           res
             .status(422)
-            .send(`attribute \'access_token\' should contain at body`);
+            .send(`attribute \'access_token\' should contain at header`);
           return;
         }
 
@@ -58,9 +59,7 @@ const middlewareCheckTokenValid =
             },
           })
           .then(() => (req.params.valid = "true"))
-          .catch(async (err) => {
-            
-          });
+          .catch(async (err) => {});
         break;
     }
     res.header({
@@ -69,6 +68,67 @@ const middlewareCheckTokenValid =
     return handler(req, res);
   };
 
+export const getUserInfo = Functions.region("asia-northeast3").https.onRequest(
+  middlewareSetCORS(
+    middlewareCheckTokenValid(
+      async (req: Functions.https.Request, res: Functions.Response<any>) => {
+        let userInfo = {};
+
+        switch (req.method) {
+          case "GET":
+            const { access_token } = req.headers;
+            const parseUrl = url.parse(req.url, true);
+            let channels_id;
+
+            if (typeof parseUrl.query.id === "string") {
+              channels_id = [parseUrl.query.id];
+            } else if (parseUrl.query.id instanceof Array) {
+              channels_id = [...parseUrl.query.id];
+            }
+
+            if (!channels_id || channels_id?.length === 0) {
+              res.status(422).send(`parameter \'channels_id\' is having error`);
+              return;
+            }
+
+            const twitchUrl =
+              `${API_URL}/users?` +
+              channels_id.map((_id) => `id=${_id}`).join("&");
+
+            const data = await axios
+              .get(twitchUrl, {
+                headers: {
+                  Authorization: `Bearer ${access_token}`,
+                  "Client-Id": process.env.TWITCH_CLIENT_ID,
+                },
+                params: {
+                  id: channels_id,
+                },
+              })
+              .then((result) => result.data)
+              .catch((err) => console.error(err));
+            userInfo = { ...data };
+
+          case "OPTIONS":
+            res
+              .header({
+                "Access-Control-Allow-Headers": [
+                  "access_token",
+                  "current_user_id",
+                ],
+              })
+              .status(200)
+              .send({
+                user_info: userInfo,
+              });
+            break;
+          default:
+            res.status(415).send("only GET method supported for this url");
+        }
+      }
+    )
+  )
+);
 export const getFollowList = Functions.region(
   "asia-northeast3"
 ).https.onRequest(
@@ -84,7 +144,7 @@ export const getFollowList = Functions.region(
             if (!current_user_id) {
               res
                 .status(422)
-                .send(`attribute \'access_token\' should contain at body`);
+                .send(`attribute \'current_user_id\' should contain at header`);
               return;
             }
 
@@ -100,7 +160,7 @@ export const getFollowList = Functions.region(
               })
               .then((result) => result.data)
               .catch((err) => console.error(err));
-            
+
             followList.push(...followListResponse.data);
 
           case "OPTIONS":
@@ -124,7 +184,6 @@ export const getFollowList = Functions.region(
   )
 );
 
-
 export const getStreamsList = Functions.region(
   "asia-northeast3"
 ).https.onRequest(
@@ -140,7 +199,7 @@ export const getStreamsList = Functions.region(
             if (!current_user_id) {
               res
                 .status(422)
-                .send(`attribute \'access_token\' should contain at body`);
+                .send(`attribute \'current_user_id\' should contain at header`);
               return;
             }
 
@@ -156,8 +215,8 @@ export const getStreamsList = Functions.region(
               })
               .then((result) => result.data)
               .catch((err) => console.error(err));
-            
-              streamsList.push(...streamsListResponse.data);
+
+            streamsList.push(...streamsListResponse.data);
 
           case "OPTIONS":
             res
@@ -178,7 +237,7 @@ export const getStreamsList = Functions.region(
       }
     )
   )
-)
+);
 
 // const requestRefreshToken = async (access_token: string) => {
 //   const params: Record<string, string> = {
